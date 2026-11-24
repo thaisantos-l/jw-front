@@ -1,0 +1,178 @@
+query JWHome {
+  jwContent {
+    home {
+      id
+      hero {
+        eyebrow
+        title
+        highlight
+        description
+        image {
+          ...JWImageFields
+        }
+        primary {
+          ...JWLinkFields
+        }
+        secondary {
+          ...JWLinkFields
+        }
+      }
+      about {
+        eyebrow
+        title
+        highlight
+        body
+      }
+      institutional {
+        decorative
+        image {
+          ...JWImageFields
+        }
+      }
+      activities {
+        eyebrow
+        title
+        highlight
+        items {
+          title
+          subtitle
+          description
+        }
+      }
+      thesis {
+        eyebrow
+        title
+        highlight
+        items {
+          title
+          description
+        }
+      }
+      criteria {
+        eyebrow
+        title
+        highlight
+        items {
+          title
+          description
+          icon {
+            ...JWImageFields
+          }
+        }
+      }
+      portfolio {
+        enabled
+        eyebrow
+        title
+        highlight
+        properties {
+          id
+          title
+          location
+          kind
+          ticket
+          status
+          image {
+            ...JWImageFields
+          }
+          link {
+            ...JWLinkFields
+          }
+        }
+      }
+      steps {
+        eyebrow
+        title
+        highlight
+        items {
+          title
+          description
+        }
+      }
+      faq {
+        eyebrow
+        title
+        highlight
+        items {
+          question
+          answer
+        }
+      }
+      contact {
+        eyebrow
+        title
+        highlight
+        submitLabel
+      }
+    }
+    site {
+      identity {
+        name
+        seoTitle
+        seoDescription
+        logo {
+          ...JWImageFields
+        }
+        footerMark {
+          ...JWImageFields
+        }
+        footerWordmark {
+          ...JWImageFields
+        }
+        socialImage {
+          ...JWImageFields
+        }
+      }
+      contacts {
+        email
+        phone
+        instagramHandle
+        instagramUrl
+        channelsLabel
+        formEnabled
+        addresses {
+          title
+          address
+        }
+      }
+      footer {
+        description
+        copyright
+        navigationTitle
+        contactTitle
+        contactLink {
+          ...JWLinkFields
+        }
+      }
+      headerMenu {
+        ...JWLinkFields
+      }
+      footerMenu {
+        ...JWLinkFields
+      }
+      privacy {
+        title
+        slug
+        body
+      }
+      terms {
+        title
+        slug
+        body
+      }
+    }
+  }
+}
+fragment JWImageFields on JWImage {
+  id
+  src
+  alt
+  width
+  height
+  srcSet
+}
+fragment JWLinkFields on JWLink {
+  label
+  url
+  newTab
+}
