@@ -1,0 +1,68 @@
+name: Frontend production
+run-name: ${{ inputs.operation }} build ${{ inputs.build_run_id }} artifact ${{ inputs.artifact_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful main build run ID
+        type: string
+        required: true
+      artifact_id:
+        description: Artifact ID from that build attempt
+        type: string
+        required: true
+      operation:
+        description: Deploy current main or roll back to an integrated build
+        type: choice
+        options: [deploy, rollback]
+        default: deploy
+        required: true
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: jw-frontend-production
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'thaisantos-l/jw-front' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BUILD_RUN_ID: ${{ inputs.build_run_id }}
+      BUILD_ARTIFACT_ID: ${{ inputs.artifact_id }}
+      CODE_OPERATION: ${{ inputs.operation }}
+      HOSTINGER_HOST: ${{ secrets.HOSTINGER_HOST }}
+      HOSTINGER_USER: ${{ secrets.HOSTINGER_USER }}
+      HOSTINGER_PORT: ${{ secrets.HOSTINGER_PORT }}
+      HOSTINGER_PATH: ${{ vars.HOSTINGER_PATH }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Select and verify trusted artifact
+        run: python3 scripts/deploy/release.py select
+      - name: Configure SSH
+        env:
+          PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+        run: |
+          umask 077
+          test -n "$PRIVATE_KEY" && test -n "$KNOWN_HOSTS"
+          printf '%s\n' "$PRIVATE_KEY" > "$RUNNER_TEMP/jw_deploy"
+          printf '%s\n' "$KNOWN_HOSTS" > "$RUNNER_TEMP/jw_known_hosts"
+          printf 'DEPLOY_KEY_FILE=%s/jw_deploy\nDEPLOY_KNOWN_HOSTS_FILE=%s/jw_known_hosts\n' "$RUNNER_TEMP" "$RUNNER_TEMP" >> "$GITHUB_ENV"
+      - name: Review transfer
+        run: bash scripts/deploy/hostinger.sh dry-run
+      - name: Publish static frontend
+        run: bash scripts/deploy/hostinger.sh publish
+      - name: Confirm public release
+        run: python3 scripts/deploy/release.py confirm
+      - name: Summarize publication
+        run: |
+          printf '### Publication confirmed\n\n- Operation: `%s`\n- build_run_id: `%s`\n- artifact_id: `%s`\n' "$CODE_OPERATION" "$BUILD_RUN_ID" "$BUILD_ARTIFACT_ID" >> "$GITHUB_STEP_SUMMARY"
+      - name: Remove temporary SSH files
+        if: always()
+        run: rm -f "$RUNNER_TEMP/jw_deploy" "$RUNNER_TEMP/jw_known_hosts"
