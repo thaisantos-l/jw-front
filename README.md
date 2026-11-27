@@ -39,4 +39,16 @@ Origem: [Figma JW, frame 57:3](https://www.figma.com/design/DAML6reLloLGruZ9qcCR
 
 A seleção e ordem dos imóveis pertencem à Home; cadastros possuem URL opcional. Não existem páginas de detalhes de imóveis nesta entrega. “Agendar uma conversa” envia uma mensagem, sem serviço de agendamento externo.
 
-Testes, relatórios, capturas, fixtures, builds, `.env.local` e credenciais ficam fora do Git. Nenhum arquivo de produto depende dessas evidências. **Deploy não configurado nem executado.**
+Testes, relatórios, capturas, fixtures, builds, `.env.local` e credenciais ficam fora do Git. Nenhum arquivo de produto depende dessas evidências.
+
+## Deploy na Hostinger
+
+PRs executam `Frontend CI`. Atualizações na `main` executam `Frontend build artifact`, usando o CMS de produção para gerar e verificar o export. O resumo da execução mostra `build_run_id` e `artifact_id`. Os artefatos ficam disponíveis por 14 dias.
+
+Para publicar, abra **Actions → Frontend production → Run workflow**, selecione `main`, informe os dois IDs e escolha `deploy`. A publicação valida repositório, workflow, execução aprovada, commit atual de `main`, tentativa e checksums. Não há rebuild durante a publicação. Para recuperar uma versão anterior, use os IDs de um artefato ainda disponível e escolha `rollback`; seu commit precisa pertencer ao histórico de `main`.
+
+Variáveis do repositório: `WORDPRESS_GRAPHQL_URL=https://cms.jwusinvest.com.br/graphql`, `SITE_URL=https://jwusinvest.com.br`, `SITE_INDEXABLE=true`. No environment `production`, `HOSTINGER_PATH=/home/u343461047/domains/jwusinvest.com.br/public_html`, com os secrets `HOSTINGER_HOST`, `HOSTINGER_USER`, `HOSTINGER_PORT`, `HOSTINGER_SSH_KEY`, `HOSTINGER_KNOWN_HOSTS`. O environment aceita apenas a branch `main`.
+
+O publicador transfere somente o export verificado e preserva `cms/`, `.well-known/`, `.htaccess`, `.user.ini` e `cgi-bin/`. Confirma o HTML e `jw-release.json` por HTTPS com e sem `www`, sem redirecionamento obrigatório. `scripts/deploy/hosting.htaccess` é a configuração inicial do servidor, instalada separadamente da publicação de código.
+
+Integre e configure primeiro o CMS. A importação do banco, as mídias e suas URLs de produção precisam estar prontas antes do primeiro build. Falhas reais da API interrompem o build e preservam o site publicado. Edições de conteúdo continuam usando a atualização em runtime existente; SEO e HTML inicial exigem novo build e publicação.

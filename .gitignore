@@ -2,6 +2,8 @@ node_modules/
 .next*/
 out/
 .cache/
+.deploy/
+__pycache__/
 .env*
 !.env.example
 *.tsbuildinfo
